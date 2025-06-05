@@ -1,11 +1,634 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title><%= title || 'Framadate Clone' %></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .date-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .date-input-group input {
+            flex: 1;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .poll-view {
+            display: none;
+        }
+
+        .poll-title {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .poll-description {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .poll-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .poll-table th, .poll-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .poll-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .poll-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .vote-cell {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .vote-cell:hover {
+            background: #e3f2fd;
+        }
+
+        .vote-yes {
+            background: #d4edda !important;
+            color: #155724;
+        }
+
+        .vote-no {
+            background: #f8d7da !important;
+            color: #721c24;
+        }
+
+        .vote-maybe {
+            background: #fff3cd !important;
+            color: #856404;
+        }
+
+        .vote-symbol {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .participant-input {
+            margin-bottom: 15px;
+        }
+
+        .share-link {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .share-link input {
+            background: white;
+            border: 1px solid #ccc;
+        }
+
+        .results-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .best-dates {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .date-input-group {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .poll-table {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <div class="container">
+        <div class="header">
+            <h1>📅 <%= title || 'Framadate Clone' %></h1>
+            <p><%= subtitle || 'Organisez vos événements facilement' %></p>
+        </div>
+
+        <!-- Formulaire de création de sondage -->
+        <div id="create-poll" class="card">
+            <h2>Créer un nouveau sondage</h2>
+            <form id="poll-form">
+                <div class="form-group">
+                    <label for="poll-title">Titre du sondage *</label>
+                    <input type="text" id="poll-title" placeholder="Ex: Réunion équipe projet" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="poll-description">Description (optionnel)</label>
+                    <textarea id="poll-description" rows="3" placeholder="Détails sur l'événement..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="creator-name">Votre nom *</label>
+                    <input type="text" id="creator-name" placeholder="Votre nom" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Dates proposées *</label>
+                    <div id="dates-container">
+                        <div class="date-input-group">
+                            <input type="date" class="date-input" required>
+                            <input type="time" class="time-input" placeholder="Heure (optionnel)">
+                            <button type="button" class="btn btn-danger" onclick="removeDateInput(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-add" onclick="addDateInput()">+ Ajouter une date</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Créer le sondage</button>
+            </form>
+        </div>
+
+        <!-- Vue du sondage -->
+        <div id="poll-view" class="poll-view">
+            <div class="card">
+                <h2 id="poll-view-title" class="poll-title"></h2>
+                <p id="poll-view-description" class="poll-description"></p>
+
+                <div class="participant-input">
+                    <label for="participant-name">Votre nom pour voter :</label>
+                    <input type="text" id="participant-name" placeholder="Entrez votre nom">
+                </div>
+
+                <table class="poll-table" id="poll-table">
+                    <thead>
+                        <tr>
+                            <th>Participant</th>
+                        </tr>
+                    </thead>
+                    <tbody id="poll-table-body">
+                    </tbody>
+                </table>
+
+                <button class="btn btn-primary" onclick="saveVote()">Enregistrer mon vote</button>
+                <button class="btn btn-secondary" onclick="showCreateForm()">Créer un nouveau sondage</button>
+
+                <div class="share-link">
+                    <label>Partager ce sondage :</label>
+                    <input type="text" id="share-url" readonly>
+                    <button class="btn btn-secondary" onclick="copyShareLink()">Copier le lien</button>
+                </div>
+
+                <div class="results-summary">
+                    <h3>Résumé des résultats</h3>
+                    <div id="results-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données en mémoire (sera remplacé par l'API)
+        let polls = JSON.parse(localStorage.getItem('polls') || '[]');
+        let currentPoll = null;
+
+        // Ajouter une nouvelle date
+        function addDateInput() {
+            const container = document.getElementById('dates-container');
+            const div = document.createElement('div');
+            div.className = 'date-input-group';
+            div.innerHTML = `
+                <input type="date" class="date-input" required>
+                <input type="time" class="time-input" placeholder="Heure (optionnel)">
+                <button type="button" class="btn btn-danger" onclick="removeDateInput(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // Supprimer une date
+        function removeDateInput(button) {
+            const container = document.getElementById('dates-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        // Créer un sondage
+        document.getElementById('poll-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('poll-title').value;
+            const description = document.getElementById('poll-description').value;
+            const creator = document.getElementById('creator-name').value;
+            
+            const dateInputs = document.querySelectorAll('.date-input');
+            const timeInputs = document.querySelectorAll('.time-input');
+            
+            const dates = [];
+            dateInputs.forEach((dateInput, index) => {
+                const date = dateInput.value;
+                const time = timeInputs[index].value;
+                if (date) {
+                    dates.push({
+                        date: date,
+                        time: time || null,
+                        display: time ? `${date} ${time}` : date
+                    });
+                }
+            });
+
+            if (dates.length === 0) {
+                alert('Veuillez ajouter au moins une date');
+                return;
+            }
+
+            const poll = {
+                id: Date.now().toString(),
+                title: title,
+                description: description,
+                creator: creator,
+                dates: dates,
+                votes: [],
+                createdAt: new Date().toISOString()
+            };
+
+            polls.push(poll);
+            localStorage.setItem('polls', JSON.stringify(polls));
+            
+            showPoll(poll.id);
+        });
+
+        // Afficher un sondage
+        function showPoll(pollId) {
+            const poll = polls.find(p => p.id === pollId);
+            if (!poll) return;
+
+            currentPoll = poll;
+            
+            document.getElementById('create-poll').style.display = 'none';
+            document.getElementById('poll-view').style.display = 'block';
+            
+            document.getElementById('poll-view-title').textContent = poll.title;
+            document.getElementById('poll-view-description').textContent = poll.description;
+            document.getElementById('share-url').value = `${window.location.origin}${window.location.pathname}?poll=${pollId}`;
+            
+            updatePollTable();
+            updateResults();
+        }
+
+        // Mettre à jour le tableau du sondage
+        function updatePollTable() {
+            const table = document.getElementById('poll-table');
+            const tbody = document.getElementById('poll-table-body');
+            
+            // Créer l'en-tête
+            const headerRow = table.querySelector('thead tr');
+            headerRow.innerHTML = '<th>Participant</th>';
+            currentPoll.dates.forEach(date => {
+                const th = document.createElement('th');
+                th.textContent = date.display;
+                headerRow.appendChild(th);
+            });
+
+            // Créer les lignes de votes
+            tbody.innerHTML = '';
+            
+            // Ligne pour le nouveau vote
+            const newVoteRow = document.createElement('tr');
+            newVoteRow.innerHTML = '<td><strong>Nouveau vote</strong></td>';
+            currentPoll.dates.forEach((date, dateIndex) => {
+                const td = document.createElement('td');
+                td.className = 'vote-cell';
+                td.dataset.dateIndex = dateIndex;
+                td.innerHTML = '<span class="vote-symbol">?</span>';
+                td.onclick = () => toggleVote(td);
+                newVoteRow.appendChild(td);
+            });
+            tbody.appendChild(newVoteRow);
+
+            // Lignes des votes existants
+            currentPoll.votes.forEach(vote => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><strong>${vote.participant}</strong></td>`;
+                vote.choices.forEach(choice => {
+                    const td = document.createElement('td');
+                    td.className = `vote-${choice}`;
+                    td.innerHTML = `<span class="vote-symbol">${getVoteSymbol(choice)}</span>`;
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+        }
+
+        // Basculer le vote
+        function toggleVote(cell) {
+            const currentClass = cell.className;
+            const symbol = cell.querySelector('.vote-symbol');
+            
+            if (currentClass.includes('vote-yes')) {
+                cell.className = 'vote-cell vote-no';
+                symbol.textContent = '✗';
+            } else if (currentClass.includes('vote-no')) {
+                cell.className = 'vote-cell vote-maybe';
+                symbol.textContent = '?';
+            } else {
+                cell.className = 'vote-cell vote-yes';
+                symbol.textContent = '✓';
+            }
+        }
+
+        // Obtenir le symbole de vote
+        function getVoteSymbol(choice) {
+            switch(choice) {
+                case 'yes': return '✓';
+                case 'no': return '✗';
+                case 'maybe': return '?';
+                default: return '?';
+            }
+        }
+
+        // Sauvegarder le vote
+        function saveVote() {
+            const participantName = document.getElementById('participant-name').value.trim();
+            if (!participantName) {
+                alert('Veuillez entrer votre nom');
+                return;
+            }
+
+            const voteCells = document.querySelectorAll('#poll-table-body tr:first-child .vote-cell');
+            const choices = [];
+            
+            voteCells.forEach(cell => {
+                if (cell.className.includes('vote-yes')) {
+                    choices.push('yes');
+                } else if (cell.className.includes('vote-no')) {
+                    choices.push('no');
+                } else {
+                    choices.push('maybe');
+                }
+            });
+
+            // Supprimer le vote existant de cette personne
+            currentPoll.votes = currentPoll.votes.filter(v => v.participant !== participantName);
+            
+            // Ajouter le nouveau vote
+            currentPoll.votes.push({
+                participant: participantName,
+                choices: choices,
+                timestamp: new Date().toISOString()
+            });
+
+            // Sauvegarder
+            const pollIndex = polls.findIndex(p => p.id === currentPoll.id);
+            polls[pollIndex] = currentPoll;
+            localStorage.setItem('polls', JSON.stringify(polls));
+
+            // Réinitialiser le formulaire
+            document.getElementById('participant-name').value = '';
+            
+            // Mettre à jour l'affichage
+            updatePollTable();
+            updateResults();
+            
+            alert('Vote enregistré avec succès !');
+        }
+
+        // Mettre à jour les résultats
+        function updateResults() {
+            const resultsContent = document.getElementById('results-content');
+            
+            if (currentPoll.votes.length === 0) {
+                resultsContent.innerHTML = '<p>Aucun vote pour le moment.</p>';
+                return;
+            }
+
+            const dateScores = currentPoll.dates.map((date, index) => {
+                const yesVotes = currentPoll.votes.filter(vote => vote.choices[index] === 'yes').length;
+                const maybeVotes = currentPoll.votes.filter(vote => vote.choices[index] === 'maybe').length;
+                const noVotes = currentPoll.votes.filter(vote => vote.choices[index] === 'no').length;
+                
+                return {
+                    date: date.display,
+                    yes: yesVotes,
+                    maybe: maybeVotes,
+                    no: noVotes,
+                    score: yesVotes + maybeVotes * 0.5
+                };
+            });
+
+            dateScores.sort((a, b) => b.score - a.score);
+
+            let html = `<p><strong>Nombre de participants :</strong> ${currentPoll.votes.length}</p>`;
+            html += '<h4>Résultats par date :</h4>';
+            
+            dateScores.forEach((dateScore, index) => {
+                const isTop = index === 0 && dateScore.score > 0;
+                html += `
+                    <div ${isTop ? 'class="best-dates"' : ''}>
+                        <strong>${dateScore.date}</strong>: 
+                        ${dateScore.yes} ✓, ${dateScore.maybe} ?, ${dateScore.no} ✗
+                        ${isTop ? ' 🏆' : ''}
+                    </div>
+                `;
+            });
+
+            resultsContent.innerHTML = html;
+        }
+
+        // Copier le lien de partage
+        function copyShareLink() {
+            const shareUrl = document.getElementById('share-url');
+            shareUrl.select();
+            document.execCommand('copy');
+            alert('Lien copié !');
+        }
+
+        // Retourner au formulaire de création
+        function showCreateForm() {
+            document.getElementById('create-poll').style.display = 'block';
+            document.getElementById('poll-view').style.display = 'none';
+            
+            // Réinitialiser le formulaire
+            document.getElementById('poll-form').reset();
+            const datesContainer = document.getElementById('dates-container');
+            datesContainer.innerHTML = `
+                <div class="date-input-group">
+                    <input type="date" class="date-input" required>
+                    <input type="time" class="time-input" placeholder="Heure (optionnel)">
+                    <button type="button" class="btn btn-danger" onclick="removeDateInput(this)">×</button>
+                </div>
+            `;
+        }
+
+        // Vérifier si un sondage est demandé dans l'URL
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pollId = urlParams.get('poll');
+            
+            if (pollId) {
+                showPoll(pollId);
+            }
+        });
+    </script>
 </body>
 </html>
