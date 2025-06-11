@@ -1,5 +1,5 @@
 # SAE_4.01_FramaDocker
-Outil de sondage qui permet de caler une date et un horaire de rencontre avec d'autres personnes au sein d'un association.
+Outil de sondage qui permet d'organiser une date et un horaire de rencontre avec d'autres personnes au sein d'un association.
 
 ## Concept
 Ce projet a pour but de faciliter la gestion des disponibilités de plusieurs personnes dans le cadre d'une rencontre.
@@ -13,11 +13,30 @@ Ce projet a pour but de faciliter la gestion des disponibilités de plusieurs pe
 
 ## Lancement de l'appli
 
+Se placer dans la racine du projet et executer :
+
+sudo docker compose up
+
+
 ## Utilisation
 
 ### Choix techniques
 
-### Contribution (pull request)
+Listing des ports utilisés :
 
+Frontend : 8080
+Backend (API) : 4000
 
+Conception dockerisée :
 ![framadocker1](https://github.com/user-attachments/assets/e1e416cc-47ac-45e6-8bea-56dfdfda3dd2)
+
+### API
+
+Créer sondage
+Update Sondage
+Voir sondage
+
+
+
+
+### Contribution (pull request)
