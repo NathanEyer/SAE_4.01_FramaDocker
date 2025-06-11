@@ -18,3 +18,6 @@ Ce projet a pour but de faciliter la gestion des disponibilités de plusieurs pe
 ### Choix techniques
 
 ### Contribution (pull request)
+
+
+![framadocker1](https://github.com/user-attachments/assets/e1e416cc-47ac-45e6-8bea-56dfdfda3dd2)
