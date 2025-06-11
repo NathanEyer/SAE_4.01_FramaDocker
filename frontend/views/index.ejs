@@ -247,6 +247,28 @@
             font-weight: 600;
         }
 
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -274,6 +296,9 @@
             <p><%= subtitle || 'Organisez vos événements facilement' %></p>
         </div>
 
+        <!-- Messages -->
+        <div id="messages"></div>
+
         <!-- Formulaire de création de sondage -->
         <div id="create-poll" class="card">
             <h2>Créer un nouveau sondage</h2>
@@ -289,8 +314,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="creator-name">Votre nom *</label>
-                    <input type="text" id="creator-name" placeholder="Votre nom" required>
+                    <label for="admin-email">Votre email (admin) *</label>
+                    <input type="email" id="admin-email" placeholder="votre.email@exemple.com" required>
                 </div>
 
                 <div class="form-group">
@@ -348,9 +373,35 @@
     </div>
 
     <script>
-        // Données en mémoire (sera remplacé par l'API)
-        let polls = JSON.parse(localStorage.getItem('polls') || '[]');
         let currentPoll = null;
+        const API_BASE = '/api';
+
+        // Utilitaires pour les messages
+        function showMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = type === 'error' ? 'error' : 'success';
+            messageEl.textContent = message;
+            messagesDiv.appendChild(messageEl);
+            
+            setTimeout(() => {
+                messageEl.remove();
+            }, 5000);
+        }
+
+        function showLoading(show = true) {
+            const messagesDiv = document.getElementById('messages');
+            const existingLoading = document.querySelector('.loading');
+            
+            if (show && !existingLoading) {
+                const loadingEl = document.createElement('div');
+                loadingEl.className = 'loading';
+                loadingEl.textContent = 'Chargement...';
+                messagesDiv.appendChild(loadingEl);
+            } else if (!show && existingLoading) {
+                existingLoading.remove();
+            }
+        }
 
         // Ajouter une nouvelle date
         function addDateInput() {
@@ -374,63 +425,102 @@
         }
 
         // Créer un sondage
-        document.getElementById('poll-form').addEventListener('submit', function(e) {
+        document.getElementById('poll-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const title = document.getElementById('poll-title').value;
             const description = document.getElementById('poll-description').value;
-            const creator = document.getElementById('creator-name').value;
+            const admin_email = document.getElementById('admin-email').value;
             
             const dateInputs = document.querySelectorAll('.date-input');
             const timeInputs = document.querySelectorAll('.time-input');
             
-            const dates = [];
+            const options = [];
             dateInputs.forEach((dateInput, index) => {
                 const date = dateInput.value;
                 const time = timeInputs[index].value;
                 if (date) {
-                    dates.push({
-                        date: date,
-                        time: time || null,
-                        display: time ? `${date} ${time}` : date
-                    });
+                    const dateOption = time ? `${date} ${time}` : date;
+                    options.push(dateOption);
                 }
             });
 
-            if (dates.length === 0) {
-                alert('Veuillez ajouter au moins une date');
+            if (options.length === 0) {
+                showMessage('Veuillez ajouter au moins une date', 'error');
                 return;
             }
 
-            const poll = {
-                id: Date.now().toString(),
-                title: title,
-                description: description,
-                creator: creator,
-                dates: dates,
-                votes: [],
-                createdAt: new Date().toISOString()
-            };
+            try {
+                showLoading(true);
+                
+                const response = await fetch(`${API_BASE}/polls`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        admin_email,
+                        options
+                    })
+                });
 
-            polls.push(poll);
-            localStorage.setItem('polls', JSON.stringify(polls));
-            
-            showPoll(poll.id);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Sondage créé avec succès !', 'success');
+                    await loadPoll(result.poll_id);
+                } else {
+                    showMessage(result.error || 'Erreur lors de la création du sondage', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showMessage('Erreur de connexion au serveur', 'error');
+            } finally {
+                showLoading(false);
+            }
         });
 
-        // Afficher un sondage
-        function showPoll(pollId) {
-            const poll = polls.find(p => p.id === pollId);
-            if (!poll) return;
+        // Charger un sondage depuis l'API
+        async function loadPoll(pollId) {
+            try {
+                showLoading(true);
+                
+                const response = await fetch(`${API_BASE}/polls/${pollId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentPoll = {
+                        id: pollId,
+                        title: data.poll.title,
+                        description: data.poll.description,
+                        options: data.options,
+                        votes: data.votes
+                    };
+                    
+                    showPoll();
+                } else {
+                    showMessage(data.error || 'Sondage non trouvé', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showMessage('Erreur lors du chargement du sondage', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
 
-            currentPoll = poll;
+        // Afficher un sondage
+        function showPoll() {
+            if (!currentPoll) return;
             
             document.getElementById('create-poll').style.display = 'none';
             document.getElementById('poll-view').style.display = 'block';
             
-            document.getElementById('poll-view-title').textContent = poll.title;
-            document.getElementById('poll-view-description').textContent = poll.description;
-            document.getElementById('share-url').value = `${window.location.origin}${window.location.pathname}?poll=${pollId}`;
+            document.getElementById('poll-view-title').textContent = currentPoll.title;
+            document.getElementById('poll-view-description').textContent = currentPoll.description || '';
+            document.getElementById('share-url').value = `${window.location.origin}${window.location.pathname}?poll=${currentPoll.id}`;
             
             updatePollTable();
             updateResults();
@@ -444,9 +534,9 @@
             // Créer l'en-tête
             const headerRow = table.querySelector('thead tr');
             headerRow.innerHTML = '<th>Participant</th>';
-            currentPoll.dates.forEach(date => {
+            currentPoll.options.forEach(option => {
                 const th = document.createElement('th');
-                th.textContent = date.display;
+                th.textContent = option.date_option;
                 headerRow.appendChild(th);
             });
 
@@ -456,26 +546,38 @@
             // Ligne pour le nouveau vote
             const newVoteRow = document.createElement('tr');
             newVoteRow.innerHTML = '<td><strong>Nouveau vote</strong></td>';
-            currentPoll.dates.forEach((date, dateIndex) => {
+            currentPoll.options.forEach((option, optionIndex) => {
                 const td = document.createElement('td');
                 td.className = 'vote-cell';
-                td.dataset.dateIndex = dateIndex;
+                td.dataset.optionId = option.id;
                 td.innerHTML = '<span class="vote-symbol">?</span>';
                 td.onclick = () => toggleVote(td);
                 newVoteRow.appendChild(td);
             });
             tbody.appendChild(newVoteRow);
 
-            // Lignes des votes existants
+            // Organiser les votes par participant
+            const votesByParticipant = {};
             currentPoll.votes.forEach(vote => {
+                if (!votesByParticipant[vote.participant_name]) {
+                    votesByParticipant[vote.participant_name] = {};
+                }
+                votesByParticipant[vote.participant_name][vote.option_id] = vote.vote;
+            });
+
+            // Lignes des votes existants
+            Object.keys(votesByParticipant).forEach(participant => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td><strong>${vote.participant}</strong></td>`;
-                vote.choices.forEach(choice => {
+                row.innerHTML = `<td><strong>${participant}</strong></td>`;
+                
+                currentPoll.options.forEach(option => {
                     const td = document.createElement('td');
-                    td.className = `vote-${choice}`;
-                    td.innerHTML = `<span class="vote-symbol">${getVoteSymbol(choice)}</span>`;
+                    const vote = votesByParticipant[participant][option.id] || 'maybe';
+                    td.className = `vote-${vote}`;
+                    td.innerHTML = `<span class="vote-symbol">${getVoteSymbol(vote)}</span>`;
                     row.appendChild(td);
                 });
+                
                 tbody.appendChild(row);
             });
         }
@@ -507,86 +609,114 @@
             }
         }
 
-        // Sauvegarder le vote
+        // Sauvegarder le vote (version simplifiée pour la démonstration)
         function saveVote() {
             const participantName = document.getElementById('participant-name').value.trim();
             if (!participantName) {
-                alert('Veuillez entrer votre nom');
+                showMessage('Veuillez entrer votre nom', 'error');
                 return;
             }
 
             const voteCells = document.querySelectorAll('#poll-table-body tr:first-child .vote-cell');
-            const choices = [];
+            const votes = [];
             
             voteCells.forEach(cell => {
+                const optionId = cell.dataset.optionId;
+                let vote = 'maybe';
+                
                 if (cell.className.includes('vote-yes')) {
-                    choices.push('yes');
+                    vote = 'yes';
                 } else if (cell.className.includes('vote-no')) {
-                    choices.push('no');
-                } else {
-                    choices.push('maybe');
+                    vote = 'no';
                 }
+                
+                votes.push({
+                    option_id: parseInt(optionId),
+                    vote: vote
+                });
             });
 
-            // Supprimer le vote existant de cette personne
-            currentPoll.votes = currentPoll.votes.filter(v => v.participant !== participantName);
-            
-            // Ajouter le nouveau vote
-            currentPoll.votes.push({
-                participant: participantName,
-                choices: choices,
-                timestamp: new Date().toISOString()
-            });
+            // Note: L'API de vote n'est pas encore implémentée dans votre backend
+            // Voici comment elle devrait être appelée :
+            /*
+            try {
+                const response = await fetch(`${API_BASE}/polls/${currentPoll.id}/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        participant_name: participantName,
+                        votes: votes
+                    })
+                });
 
-            // Sauvegarder
-            const pollIndex = polls.findIndex(p => p.id === currentPoll.id);
-            polls[pollIndex] = currentPoll;
-            localStorage.setItem('polls', JSON.stringify(polls));
-
-            // Réinitialiser le formulaire
-            document.getElementById('participant-name').value = '';
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Vote enregistré avec succès !', 'success');
+                    document.getElementById('participant-name').value = '';
+                    await loadPoll(currentPoll.id);
+                } else {
+                    showMessage(result.error || 'Erreur lors de l\'enregistrement du vote', 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showMessage('Erreur de connexion au serveur', 'error');
+            }
+            */
             
-            // Mettre à jour l'affichage
-            updatePollTable();
-            updateResults();
-            
-            alert('Vote enregistré avec succès !');
+            // Simulation pour la démonstration
+            showMessage('Vote simulé (API de vote à implémenter)', 'error');
         }
 
         // Mettre à jour les résultats
         function updateResults() {
             const resultsContent = document.getElementById('results-content');
             
-            if (currentPoll.votes.length === 0) {
+            if (!currentPoll.votes || currentPoll.votes.length === 0) {
                 resultsContent.innerHTML = '<p>Aucun vote pour le moment.</p>';
                 return;
             }
 
-            const dateScores = currentPoll.dates.map((date, index) => {
-                const yesVotes = currentPoll.votes.filter(vote => vote.choices[index] === 'yes').length;
-                const maybeVotes = currentPoll.votes.filter(vote => vote.choices[index] === 'maybe').length;
-                const noVotes = currentPoll.votes.filter(vote => vote.choices[index] === 'no').length;
-                
-                return {
-                    date: date.display,
-                    yes: yesVotes,
-                    maybe: maybeVotes,
-                    no: noVotes,
-                    score: yesVotes + maybeVotes * 0.5
+            // Organiser les résultats par option
+            const optionResults = {};
+            currentPoll.options.forEach(option => {
+                optionResults[option.id] = {
+                    date: option.date_option,
+                    yes: 0,
+                    maybe: 0,
+                    no: 0
                 };
             });
 
-            dateScores.sort((a, b) => b.score - a.score);
+            // Compter les votes
+            currentPoll.votes.forEach(vote => {
+                if (optionResults[vote.option_id]) {
+                    optionResults[vote.option_id][vote.vote]++;
+                }
+            });
 
-            let html = `<p><strong>Nombre de participants :</strong> ${currentPoll.votes.length}</p>`;
+            // Calculer les scores et trier
+            const sortedResults = Object.values(optionResults)
+                .map(result => ({
+                    ...result,
+                    score: result.yes + result.maybe * 0.5
+                }))
+                .sort((a, b) => b.score - a.score);
+
+            // Compter les participants uniques
+            const uniqueParticipants = [...new Set(currentPoll.votes.map(v => v.participant_name))];
+
+            let html = `<p><strong>Nombre de participants :</strong> ${uniqueParticipants.length}</p>`;
             html += '<h4>Résultats par date :</h4>';
             
-            dateScores.forEach((dateScore, index) => {
-                const isTop = index === 0 && dateScore.score > 0;
+            sortedResults.forEach((result, index) => {
+                const isTop = index === 0 && result.score > 0;
                 html += `
                     <div ${isTop ? 'class="best-dates"' : ''}>
-                        <strong>${dateScore.date}</strong>: 
-                        ${dateScore.yes} ✓, ${dateScore.maybe} ?, ${dateScore.no} ✗
+                        <strong>${result.date}</strong>: 
+                        ${result.yes} ✓, ${result.maybe} ?, ${result.no} ✗
                         ${isTop ? ' 🏆' : ''}
                     </div>
                 `;
@@ -600,7 +730,7 @@
             const shareUrl = document.getElementById('share-url');
             shareUrl.select();
             document.execCommand('copy');
-            alert('Lien copié !');
+            showMessage('Lien copié !', 'success');
         }
 
         // Retourner au formulaire de création
@@ -618,6 +748,9 @@
                     <button type="button" class="btn btn-danger" onclick="removeDateInput(this)">×</button>
                 </div>
             `;
+            
+            // Changer l'URL
+            window.history.pushState({}, '', window.location.pathname);
         }
 
         // Vérifier si un sondage est demandé dans l'URL
@@ -626,7 +759,7 @@
             const pollId = urlParams.get('poll');
             
             if (pollId) {
-                showPoll(pollId);
+                loadPoll(pollId);
             }
         });
     </script>
