@@ -1,35 +1,74 @@
 version: '3.8'
 
 services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+  # Base de données PostgreSQL
+  database:
+    image: postgres:15-alpine
+    container_name: framadate_db
     environment:
-      - NODE_ENV=development
-
-  backend:
-    build: ./backend
-    ports:
-      - "5000:5000"
-    depends_on:
-      - db
-    environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=mydatabase
-
-  db:
-    image: postgres:13
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=mydatabase
+      POSTGRES_DB: ${DB_NAME:-framadate}
+      POSTGRES_USER: ${DB_USER:-framauser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-framapass}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - framadate_network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ${DOCKER_FILE:-Dockerfile}
+    container_name: framadate_backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-framadate}
+      DB_USER: ${DB_USER:-framauser}
+      DB_PASSWORD: ${DB_PASSWORD:-framapass}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
+      API_PORT: 3000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - database
+    networks:
+      - framadate_network
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ${DOCKER_FILE:-Dockerfile}
+    container_name: framadate_frontend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      API_URL: ${API_URL:-http://backend:3000}
+      FRONTEND_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+    networks:
+      - framadate_network
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  framadate_network:
+    driver: bridge
