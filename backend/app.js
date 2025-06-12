@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 
 const app = express();
-const port = process.env.BACK_PORT;
+const port = process.env.API_PORT;
 
 // Middleware
 app.use(cors());
