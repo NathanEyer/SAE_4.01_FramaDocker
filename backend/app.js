@@ -35,7 +35,7 @@ pool.connect((err, client, release) => {
 app.post('/api/polls', async (req, res) => {
   try {
     const { title, description, admin_email, options } = req.body;
-    
+
     // Validation basique
     if (!title || !admin_email || !options || options.length === 0) {
       return res.status(400).json({ error: 'Données manquantes' });
@@ -46,7 +46,7 @@ app.post('/api/polls', async (req, res) => {
       'INSERT INTO polls (title, description, admin_email) VALUES ($1, $2, $3) RETURNING *',
       [title, description, admin_email]
     );
-    
+
     const poll = pollResult.rows[0];
 
     // Insérer les options
@@ -57,9 +57,9 @@ app.post('/api/polls', async (req, res) => {
       );
     }
 
-    res.status(201).json({ 
-      message: 'Sondage créé avec succès', 
-      poll_id: poll.id 
+    res.status(201).json({
+      message: 'Sondage créé avec succès',
+      poll_id: poll.id
     });
 
   } catch (error) {
