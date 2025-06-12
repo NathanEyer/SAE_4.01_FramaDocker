@@ -1,10 +1,9 @@
 name: Test Docker Compose Build
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  pull_request:
 
 jobs:
   docker-build:
