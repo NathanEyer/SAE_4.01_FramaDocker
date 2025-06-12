@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
+const cors = require('cors');
 
 // Configuration EJS
 app.set('view engine', 'ejs');

@@ -32,7 +32,7 @@ services:
       DB_USER: ${DB_USER:-framauser}
       DB_PASSWORD: ${DB_PASSWORD:-framapass}
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
-      API_PORT: 3000
+      API_PORT: 4000
     ports:
       - "4000:4000"
     depends_on:

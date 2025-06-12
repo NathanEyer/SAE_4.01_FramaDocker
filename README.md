@@ -32,9 +32,9 @@ Conception dockerisée :
 
 ### API
 
-Créer sondage
-Update Sondage
-Voir sondage
+Créer sondage   post
+Update Sondage  put ID
+Voir sondage    get ID
 
 
 
