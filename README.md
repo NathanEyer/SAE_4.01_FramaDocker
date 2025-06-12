@@ -24,8 +24,9 @@ sudo docker compose up
 
 Listing des ports utilisés :
 
-Frontend : 8080
+Frontend : 3000
 Backend (API) : 4000
+DB : 5000
 
 Conception dockerisée :
 ![framadocker1](https://github.com/user-attachments/assets/e1e416cc-47ac-45e6-8bea-56dfdfda3dd2)
