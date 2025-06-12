@@ -292,7 +292,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 <%= title || 'Framadate Clone' %></h1>
+            <h1>📅 <%= title || 'FramaDocker' %></h1>
             <p><%= subtitle || 'Organisez vos événements facilement' %></p>
         </div>
 
@@ -374,7 +374,7 @@
 
     <script>
         let currentPoll = null;
-        const API_BASE = 'backend:4000/api';
+        const API_BASE = 'http://backend:4000/api';
 
         // Utilitaires pour les messages
         function showMessage(message, type = 'info') {
@@ -452,35 +452,39 @@
             
             try {
                 showLoading(true);
-                
+
                 const response = await fetch(`${API_BASE}/polls`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        title,
-                        description,
-                        admin_email,
-                        options
+                    title,
+                    description,
+                    admin_email,
+                    options
                     })
                 });
-                console.log("test", response);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     showMessage('Sondage créé avec succès !', 'success');
                     await loadPoll(result.poll_id);
                 } else {
                     showMessage(result.error || 'Erreur lors de la création du sondage', 'error');
                 }
-            } catch (error) {
+                } catch (error) {
                 console.error('Erreur:', error);
-                showMessage('Erreur de connexion au serveur', 'error');
-            } finally {
+                showMessage('Erreur de connexion au serveur: ' + error.message, 'error');
+                } finally {
                 showLoading(false);
-            }
-        });
+                }
+            });
 
         // Charger un sondage depuis l'API
         async function loadPoll(pollId) {

@@ -7,7 +7,13 @@ const cors = require('cors');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+const corsOptions = {
+  origin: 'http://localhost:8080',
+  optionsSuccessStatus: 200 
+};
+
 // Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static('frontend/public')); // pour CSS/JS séparés si besoin
 
