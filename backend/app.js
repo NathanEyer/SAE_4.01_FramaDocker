@@ -147,28 +147,44 @@ app.put('/api/polls/:id', async (req, res) => {
   }
 });
 
-// 4. VOTER (bonus)
-// app.post('/api/polls/:id/vote', async (req, res) => {
-//   try {
-//     const pollId = req.params.id;
-//     const { participant_name, votes } = req.body;
+// 4. VOTER 
+app.post('/api/polls/:id/vote', async (req, res) => {
+  try {
+    const pollId = req.params.id;
+    const { participant_name, votes } = req.body;
 
-//     // votes = [{ option_id: 1, vote: 'yes' }, { option_id: 2, vote: 'no' }]
-    
-//     for (const vote of votes) {
-//       await pool.query(
-//         'INSERT INTO votes (poll_id, participant_name, option_id, vote) VALUES ($1, $2, $3, $4)',
-//         [pollId, participant_name, vote.option_id, vote.vote]
-//       );
-//     }
+    // Validation
+    if (!participant_name || !votes || !Array.isArray(votes)) {
+      return res.status(400).json({ error: 'Données manquantes ou invalides' });
+    }
 
-//     res.json({ message: 'Vote enregistré avec succès' });
+    // Vérifier que le sondage existe
+    const pollResult = await pool.query('SELECT id FROM polls WHERE id = $1', [pollId]);
+    if (pollResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Sondage non trouvé' });
+    }
 
-//   } catch (error) {
-//     console.error('Erreur vote:', error);
-//     res.status(500).json({ error: 'Erreur serveur' });
-//   }
-// });
+    // Supprimer les votes existants du participant (si il vote à nouveau)
+    await pool.query(
+      'DELETE FROM votes WHERE poll_id = $1 AND participant_name = $2',
+      [pollId, participant_name]
+    );
+
+    // Insérer les nouveaux votes
+    for (const vote of votes) {
+      await pool.query(
+        'INSERT INTO votes (poll_id, participant_name, option_id, vote) VALUES ($1, $2, $3, $4)',
+        [pollId, participant_name, vote.option_id, vote.vote]
+      );
+    }
+
+    res.json({ message: 'Vote enregistré avec succès' });
+
+  } catch (error) {
+    console.error('Erreur vote:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
 

@@ -618,64 +618,64 @@
         }
 
         // Sauvegarder le vote (version simplifiée pour la démonstration)
-        function saveVote() {
-            const participantName = document.getElementById('participant-name').value.trim();
-            if (!participantName) {
-                showMessage('Veuillez entrer votre nom', 'error');
-                return;
-            }
+        async function saveVote() {
+    const participantName = document.getElementById('participant-name').value.trim();
+    if (!participantName) {
+        showMessage('Veuillez entrer votre nom', 'error');
+        return;
+    }
 
-            const voteCells = document.querySelectorAll('#poll-table-body tr:first-child .vote-cell');
-            const votes = [];
+    const voteCells = document.querySelectorAll('#poll-table-body tr:first-child .vote-cell');
+    const votes = [];
+    
+    voteCells.forEach(cell => {
+        const optionId = cell.dataset.optionId;
+        let vote = 'maybe'; // valeur par défaut
+        
+        if (cell.className.includes('vote-yes')) {
+            vote = 'yes';
+        } else if (cell.className.includes('vote-no')) {
+            vote = 'no';
+        }
+        
+        votes.push({
+            option_id: parseInt(optionId),
+            vote: vote
+        });
+    });
+
+    try {
+        showLoading(true);
+        
+        // Appel à votre API de vote (vous devez décommenter la route dans le backend)
+        const response = await fetch(`${API_BASE}/polls/${currentPoll.id}/vote`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                participant_name: participantName,
+                votes: votes
+            })
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            showMessage('Vote enregistré avec succès !', 'success');
+            document.getElementById('participant-name').value = '';
             
-            voteCells.forEach(cell => {
-                const optionId = cell.dataset.optionId;
-                let vote = 'maybe';
-                
-                if (cell.className.includes('vote-yes')) {
-                    vote = 'yes';
-                } else if (cell.className.includes('vote-no')) {
-                    vote = 'no';
-                }
-                
-                votes.push({
-                    option_id: parseInt(optionId),
-                    vote: vote
-                });
-            });
-
-            // Note: L'API de vote n'est pas encore implémentée dans votre backend
-            // Voici comment elle devrait être appelée :
-            /*
-            try {
-                const response = await fetch(`${API_BASE}/polls/${currentPoll.id}/vote`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        participant_name: participantName,
-                        votes: votes
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showMessage('Vote enregistré avec succès !', 'success');
-                    document.getElementById('participant-name').value = '';
-                    await loadPoll(currentPoll.id);
-                } else {
-                    showMessage(result.error || 'Erreur lors de l\'enregistrement du vote', 'error');
-                }
+            // Recharger le sondage pour afficher les nouveaux votes
+            await loadPoll(currentPoll.id);
+        } else {
+            showMessage(result.error || 'Erreur lors de l\'enregistrement du vote', 'error');
+        }
             } catch (error) {
                 console.error('Erreur:', error);
-                showMessage('Erreur de connexion au serveur', 'error');
+                showMessage('Erreur de connexion au serveur: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
             }
-            */
-            
-            // Simulation pour la démonstration
-            showMessage('Vote simulé (API de vote à implémenter)', 'error');
         }
 
         // Mettre à jour les résultats
