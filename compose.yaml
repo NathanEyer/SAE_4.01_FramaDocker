@@ -30,7 +30,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       API_PORT: ${BACK_PORT}
     ports:
-      - "${BACK_PORT}:${BACK_PORT}"
+      - "${BACK_PORT:-4000}:${BACK_PORT:-4000}"
     depends_on:
       - database
     networks:
@@ -50,7 +50,7 @@ services:
       API_URL: ${API_URL}
       FRONTEND_PORT: ${FRONT_PORT}
     ports:
-      - "${FRONT_PORT}:${FRONT_PORT}"
+      - "${FRONT_PORT:-3000}:${FRONT_PORT:-3000}"
     depends_on:
       - backend
     networks:
