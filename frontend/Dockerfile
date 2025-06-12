@@ -22,7 +22,7 @@ RUN chown -R nodeuser:nodejs /app
 USER nodeuser
 
 # Exposer le port
-EXPOSE 8080
+EXPOSE ${FRONTEND_PORT}
 
 # Commande de démarrage
 CMD ["node", "app.js"]

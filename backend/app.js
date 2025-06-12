@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 
 const app = express();
-const port = process.env.API_PORT || 4000;
+const port = process.env.BACK_PORT;
 
 // Middleware
 app.use(cors());
@@ -11,11 +11,11 @@ app.use(express.json());
 
 // Configuration PostgreSQL
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'framadate',
-  user: process.env.DB_USER || 'framauser',
-  password: process.env.DB_PASSWORD || 'framapass',
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
 });
 
 // Test de connexion

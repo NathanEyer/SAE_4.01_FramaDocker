@@ -6,14 +6,12 @@ services:
     image: postgres:15-alpine
     container_name: framadate_db
     environment:
-      POSTGRES_DB: ${DB_NAME:-framadate}
-      POSTGRES_USER: ${DB_USER:-framauser}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-framapass}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d
-    ports:
-      - "5432:5432"
     networks:
       - framadate_network
     restart: unless-stopped
@@ -25,16 +23,14 @@ services:
       dockerfile: ${DOCKER_FILE:-Dockerfile}
     container_name: framadate_backend
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
       DB_HOST: database
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-framadate}
-      DB_USER: ${DB_USER:-framauser}
-      DB_PASSWORD: ${DB_PASSWORD:-framapass}
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
-      API_PORT: 4000
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      API_PORT: ${BACK_PORT}
     ports:
-      - "4001:4000"
+      - "${BACK_PORT}:${BACK_PORT}"
     depends_on:
       - database
     networks:
@@ -51,11 +47,10 @@ services:
       dockerfile: ${DOCKER_FILE:-Dockerfile}
     container_name: framadate_frontend
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      API_URL: ${API_URL:-http://backend:3001}
-      FRONTEND_PORT: 8080
+      API_URL: ${API_URL}
+      FRONTEND_PORT: ${FRONT_PORT}
     ports:
-      - "8080:8080"
+      - "${FRONT_PORT}:${FRONT_PORT}"
     depends_on:
       - backend
     networks:
