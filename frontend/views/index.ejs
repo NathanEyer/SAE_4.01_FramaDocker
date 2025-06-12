@@ -374,7 +374,7 @@
 
     <script>
         let currentPoll = null;
-        const API_BASE = '/api';
+        const API_BASE = 'backend:4000/api';
 
         // Utilitaires pour les messages
         function showMessage(message, type = 'info') {
@@ -444,12 +444,12 @@
                     options.push(dateOption);
                 }
             });
-
+            
             if (options.length === 0) {
                 showMessage('Veuillez ajouter au moins une date', 'error');
                 return;
             }
-
+            
             try {
                 showLoading(true);
                 
@@ -465,7 +465,7 @@
                         options
                     })
                 });
-
+                console.log("test", response);
                 const result = await response.json();
                 
                 if (response.ok) {
