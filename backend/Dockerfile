@@ -9,10 +9,10 @@ RUN adduser -S nodeuser -u 1001
 WORKDIR /app
 
 # Copier les fichiers de dépendances
-# COPY package*.json ./
+COPY package*.json ./
 
 # Installer les dépendances
-# RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copier le code source
 COPY . .
