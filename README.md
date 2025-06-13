@@ -24,7 +24,7 @@ git clone https://github.com/NathanEyer/SAE_4.02_FramaDocker.git
 
 Se placer dans la racine du projet et executer :
 
-docker compose up &
+docker compose up -d
 
 Les dockers tournent en tache de fond. Pour s'assurer qu'ils tournent bien, faire :
 
