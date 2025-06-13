@@ -1,0 +1,15 @@
+### Description
+Veuillez décrire les changements introduits par cette PR.
+
+### Type de changement
+- [ ] Nouvelle fonctionnalité
+- [ ] Correction de bug
+- [ ] Refactoring
+- [ ] Mise à jour de documentation
+- [ ] Autre (précisez) :
+
+### Checklist
+- [ ] Le code a été testé localement
+- [ ] Les tests passent avec succès
+- [ ] La documentation est à jour
+- [ ] La PR est liée à une issue (si applicable)
